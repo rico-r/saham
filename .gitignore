@@ -1,0 +1,10 @@
+*
+!data
+!data/*
+!indicator
+!indicator/*
+!.gitignore
+!update.py
+!filter.py
+!README.MD
+!emiten.csv
