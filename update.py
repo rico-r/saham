@@ -13,23 +13,28 @@ def add2date(start: str, days: int):
 
 def getCurrentDate():
     now = datetime.now()
-    if now.hour >= 15 and now.minute > 30:
-        return add2date(formatDate(now), 1)
+    if now > now.replace(hour=15, minute=30):
+        return formatDate(now + timedelta(days=1))
     else:
         return formatDate(now)
 
 def append(output: str, emiten: str):
     data = pd.read_csv(output)
-    lastDate = add2date(data.Date[data.index[-1]], 1)
-    if lastDate == currentDate:
-        print(f"Skipping {emiten}... already latest data")
+
+    lastDate = data.Date[data.index[-1]]
+    nextDate = add2date(lastDate, 1)
+    if nextDate == endDate:
+        print(f"Skipping {emiten}... already has latest data")
         return
     print(f"Updating {emiten}...")
-    data = yf.download(emiten + ".JK", progress=False, start=lastDate, end=currentDate)
+    data = yf.download(emiten + ".JK", progress=False, start=nextDate, end=endDate)
 
     # either network problem or emiten is delisted
     if data.index.size == 0:
         print(f"Skipping {emiten}... due to no data")
+        return
+    elif formatDate(data.index[0]) == lastDate:
+        print(f"Skipping {emiten}... already has latest data")
         return
 
     # save result
@@ -48,7 +53,7 @@ if len(os.sys.argv) > 1:
 else:
     emitenList = pd.read_csv('emiten.csv').emiten
 
-currentDate = getCurrentDate()
+endDate = getCurrentDate()
 for emiten in emitenList:
     fileOutput = f"data/{emiten.lower()}.csv"
     if os.path.exists(fileOutput):
