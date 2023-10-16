@@ -18,14 +18,27 @@ def getCurrentDate():
     else:
         return formatDate(now)
 
+def update(output: str, data: pd.DataFrame, emiten: str, endDate: str):
+    newData = yf.download("AALI.JK", progress=False, start=endDate)
+    data = data.drop(data.index[-1])
+    data = data.set_index('Date')
+    data.to_csv(output)
+    newData.to_csv(output, mode='a', header=False)
+
 def append(output: str, emiten: str):
     data = pd.read_csv(output)
 
     lastDate = data.Date[data.index[-1]]
     nextDate = add2date(lastDate, 1)
+    if lastDate == endDate:
+        # update today data
+        print(f"Refresh {emiten}...")
+        return update(output, data, emiten, endDate)
+
     if nextDate == endDate:
         print(f"Skipping {emiten}... already has latest data")
         return
+
     print(f"Updating {emiten}...")
     data = yf.download(emiten + ".JK", progress=False, start=nextDate, end=endDate)
 
