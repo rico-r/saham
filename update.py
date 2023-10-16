@@ -12,14 +12,13 @@ def add2date(start: str, days: int):
 	return formatDate(datetime.fromisoformat(start) + timedelta(days))
 
 def getCurrentDate():
-    now = datetime.now()
-    if now > now.replace(hour=15, minute=30):
-        return formatDate(now + timedelta(days=1))
-    else:
-        return formatDate(now)
+    return formatDate(datetime.now() + timedelta(days=1))
 
-def update(output: str, data: pd.DataFrame, emiten: str, endDate: str):
-    newData = yf.download("AALI.JK", progress=False, start=endDate)
+def update(output: str, data: pd.DataFrame, emiten: str, startDate: str):
+    newData = yf.download(emiten + ".JK", progress=False, start=startDate)
+    if newData.index.size == 0:
+        print(f"Skipping {emiten}...")
+        return
     data = data.drop(data.index[-1])
     data = data.set_index('Date')
     data.to_csv(output)
@@ -30,14 +29,10 @@ def append(output: str, emiten: str):
 
     lastDate = data.Date[data.index[-1]]
     nextDate = add2date(lastDate, 1)
-    if lastDate == endDate:
+    if nextDate == endDate:
         # update today data
         print(f"Refresh {emiten}...")
-        return update(output, data, emiten, endDate)
-
-    if nextDate == endDate:
-        print(f"Skipping {emiten}... already has latest data")
-        return
+        return update(output, data, emiten, lastDate)
 
     print(f"Updating {emiten}...")
     data = yf.download(emiten + ".JK", progress=False, start=nextDate, end=endDate)
