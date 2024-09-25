@@ -6,5 +6,6 @@
 !.gitignore
 !update.py
 !filter.py
+!filter-rsi.py
 !README.MD
 !emiten.csv
