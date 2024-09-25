@@ -5,6 +5,8 @@ import pandas as pd
 from indicator.rescale import prevMonth
 from indicator.rsi import rsi
 
+min_increase = 0.01
+
 def check(emiten: str) -> bool:
     fileName = f"data/{emiten}.csv"
     if not os.path.exists(fileName):
@@ -15,10 +17,18 @@ def check(emiten: str) -> bool:
     close = ticker.Close[lastIndex]
     RSI = rsi(ticker.Close, 2)
     if RSI[lastIndex] > 70:
-        print(f"{emiten}: +{(close / ticker.Close[ticker.index[-2]] - 1) * 100:.2f}%, rsi: {RSI[lastIndex]:.2f}")
+        increase = (close / ticker.Close[ticker.index[-2]] - 1) * 100
+        if increase > min_increase:
+            print(f"{emiten}: +{increase:.2f}%, rsi: {RSI[lastIndex]:.2f}")
 
-if len(os.sys.argv) > 1:
-    emitenList = os.sys.argv[1:]
+argv = os.sys.argv
+argv.pop(0)
+if len(argv) > 1 and argv[0] == '--min':
+    argv.pop(0)
+    min_increase = float(argv.pop(0))
+
+if len(argv) > 0:
+    emitenList = argv
 else:
     emitenList = pd.read_csv('emiten.csv').emiten
 
